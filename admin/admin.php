@@ -190,12 +190,17 @@ function ls_generator_admin() {
                 </li>
                 <li>
                     <b>
-                        <?php _e('Note that this generator only supports 4 products per page, which provided the best and most accurate layout during numerous tests.', LSGEN_TDOM); ?>
+                        <?php _e('Note that this generator only supports maximum 4 products per page, which provides the best and most accurate layout.', LSGEN_TDOM); ?>
                     </b>
                 </li>
                 <li>
                     <b>
-                        <?php _e('Previously generated PDFs will appear in the "Previously Generated" box below under the line sheet save name defined below, so if you need to redownload previously generated PDFs, you can do so by clicking on the link of the associated PDF.', LSGEN_TDOM); ?>
+                        <?php _e('Previously generated PDFs will appear in the "Previously generated line sheet PDFs" box below under the line sheet save name defined below, so if you need to redownload previously generated PDFs, you can do so by clicking on the link of the associated PDF.', LSGEN_TDOM); ?>
+                    </b>
+                </li>
+                <li>
+                    <b>
+                        <?php _e('You can delete all previously generated PDFs by clicking on the "Delete All" button.', LSGEN_TDOM); ?>
                     </b>
                 </li>
             </ul>
@@ -437,7 +442,7 @@ function ls_generator_admin() {
 
             $.post('<?php echo admin_url('admin-ajax.php'); ?>', data, function(response) {
                 alert(response.data);
-                btn.text('<?php _e('Generate Line Sheet', LSGEN_TDOM); ?>');
+                location.reload();
             })
         }
 
@@ -492,6 +497,14 @@ function ls_generator_admin() {
             background: white;
             width: 95%;
             display: flex;
+            flex-wrap: wrap;
+        }
+
+        .select2-container .select2-selection--multiple {
+            box-sizing: border-box;
+            cursor: pointer;
+            display: block;
+            min-height: 70px;
         }
 
         div#ls-preview-cont>h1 {
@@ -516,6 +529,7 @@ function ls_generator_admin() {
             border: 0.5mm solid #ddd !important;
             border-radius: 1mm;
             box-shadow: 0mm 0mm 1.5mm lightgray;
+            margin-bottom: 13mm !important;
         }
 
         ul#ls-instructions {

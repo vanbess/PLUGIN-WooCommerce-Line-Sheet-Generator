@@ -65,6 +65,9 @@ function ls_generate_line_sheet_preview_html($prod_ids, $per_page, $currency, $c
     $totalProducts = count($prod_ids);
     $totalPages    = ceil($totalProducts / $per_page);
 
+    // get number of products on the last page
+    $numProductsLastPage = $totalProducts % $per_page;
+
     // Get default currency
     $defaultCurrency =  get_woocommerce_currency();
 
@@ -78,7 +81,7 @@ function ls_generate_line_sheet_preview_html($prod_ids, $per_page, $currency, $c
 
         $isNotFrontPage = $page !== 1 ? ' not-front-page' : null;
 ?>
-        <div class="line-sheet-page-table-cont" style="padding: 0; margin: 0; <?php echo $canvas_size ?>">
+        <div class="line-sheet-page-table-cont" data-last-page-prods="<?php echo $numProductsLastPage; ?>" data-page="<?php echo $page; ?>" totalpages="<?php echo $totalPages; ?>" style="padding: 0; margin: 0; <?php echo $canvas_size ?>">
 
             <table class="line-sheet-page page-<?php echo $page ?> layout-<?php echo $layout ?>" style="border-collapse: collapse; font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen-Sans,Ubuntu,Cantarell,'Helvetica Neue',sans-serif;">
 
@@ -94,11 +97,17 @@ function ls_generate_line_sheet_preview_html($prod_ids, $per_page, $currency, $c
 
                 <?php
                 // setup first page intro text
-                if ($page === 1) :
+                if ($page === 1 && !empty($intro)) :
                 ?>
                     <tr>
-                        <td colspan="3" style="text-align: left;line-height:6mm;font-size: 4mm;padding-top: 3mm;padding-bottom: 2mm; min-height:13.5mm;">
+                        <td colspan="3" style="text-align: left;line-height:6mm;font-size: 4mm;padding-top: 3mm;padding-bottom: 2mm; height:22mm;">
                             <?php echo trim($intro) ?>
+                        </td>
+                    </tr>
+
+                <?php elseif ($page === 1 && empty($intro)) : ?>
+                    <tr>
+                        <td colspan="3" style="text-align: left;line-height:6mm;font-size: 4mm;padding-top: 3mm;padding-bottom: 2mm; min-height: 13.5mm;">
                         </td>
                     </tr>
 
@@ -107,6 +116,7 @@ function ls_generate_line_sheet_preview_html($prod_ids, $per_page, $currency, $c
                         <td colspan="3" style="text-align: left;line-height:6mm;font-size: 4mm;padding-top: 3mm;padding-bottom: 2mm; min-height: 13.5mm;">
                         </td>
                     </tr>
+
                 <?php endif; ?>
 
                 <!-- product container -->
@@ -129,14 +139,44 @@ function ls_generate_line_sheet_preview_html($prod_ids, $per_page, $currency, $c
                                 $pSku    = trim($prod->get_sku());
                                 $pLink   = $prod->get_permalink();
 
-                                // Setup correct pricing based on subbed currency
-                                $pPrice = $prod->get_price();
+                                /**
+                                 * Get correct pricing based on subbed currency
+                                 */
 
-                                if ($currency == $defaultCurrency) :
-                                    $pPrice = $prod->get_price();
+                                // if has children
+                                if ($prod->has_child()) :
+
+                                    $children = $prod->get_children();
+
+                                    $pPrice = get_post_meta($children[0], '_price', true) ? get_post_meta($children[0], '_price', true) : get_post_meta($children[0], '_regular_price', true);
+
+                                    $conv_rate = alg_wc_cs_get_exchange_rate('USD', $currency);
+
+                                    $pPrice = $pPrice * $conv_rate;
+
+                                    // if default currency
+                                    // if ($currency == $defaultCurrency) :
+                                    //     $pPrice = get_post_meta($children[0], '_price', true) ? get_post_meta($children[0], '_price', true) : get_post_meta($children[0], '_regular_price', true);
+
+                                    // // if not defualt currency
+                                    // else :
+                                    //     $pPrice = get_post_meta($children[0], "_alg_currency_switcher_per_product_regular_price_$currency", true) ?get_post_meta($children[0], "_alg_currency_switcher_per_product_regular_price_$currency", true): $cPrice;
+                                    // endif;
+
+                                // if simple product
                                 else :
-                                    $pPrice = get_post_meta($productId, "_alg_currency_switcher_per_product_regular_price_$currency", true) ?: $pPrice;
+
+                                    // if ($currency == $defaultCurrency) :
+                                        $pPrice = $prod->get_price();
+                                    // else :
+                                    //     $pPrice = get_post_meta($productId, "_alg_currency_switcher_per_product_regular_price_$currency", true) ?get_post_meta($productId, "_alg_currency_switcher_per_product_regular_price_$currency", true): $prod->get_price();
+                                    // endif;
                                 endif;
+
+                                // if (function_exists('alg_convert_price')) :
+                                //     $pPrice = alg_convert_price(['price' => $pPrice, 'currency_from' => get_woocommerce_currency(), 'currency' => $currency]);
+                                // endif;
+
 
                                 // setup prod pair container
                                 if ($productCounter % 2 === 1) : ?>
@@ -148,7 +188,7 @@ function ls_generate_line_sheet_preview_html($prod_ids, $per_page, $currency, $c
                                         <td class="ls-prod-cont" style="text-align:center; padding: 3mm; line-height: 6.5mm; padding-bottom: 20mm;">
                                             <a href="<?php echo $pLink; ?>" style="text-decoration: none; color: black;">
                                                 <img style="width:88mm; height: 88mm; border: 0.5mm solid #ddd; box-sizing: border-box; margin-bottom: 5mm;" src="<?php echo $pImgUrl ?>" />
-                                                <div class="ls-prod-title" style="font-weight: bold; font-size: 3.5mm;"><?php echo $pTitle ?></div>
+                                                <div class="ls-prod-title" style="font-weight: bold;"><?php echo $pTitle ?></div>
                                                 <div class="ls-prod-price"><?php echo $currency . ' ' . number_format($pPrice, 2, '.', '') ?></div>
                                                 <div class="ls-prod-sku"><?php echo 'SKU: ' . $pSku ?></div>
                                             </a>
@@ -160,7 +200,19 @@ function ls_generate_line_sheet_preview_html($prod_ids, $per_page, $currency, $c
                                         <td class="ls-prod-cont" style="text-align:center; padding: 3mm; line-height: 6.5mm; padding-bottom: 20mm;">
                                             <a href="<?php echo $pLink; ?>" style="text-decoration: none; color: black;">
                                                 <img style="width:88mm; height: 88mm; border: 0.5mm solid #ddd; box-sizing: border-box; margin-bottom: 5mm;" src="<?php echo $pImgUrl ?>" />
-                                                <div class="ls-prod-title" style="font-weight: bold; font-size: 3.5mm;"><?php echo $pTitle ?></div>
+                                                <div class="ls-prod-title" style="font-weight: bold;"><?php echo $pTitle ?></div>
+                                                <div class="ls-prod-price"><?php echo $currency . ' ' . number_format($pPrice, 2, '.', '') ?></div>
+                                                <div class="ls-prod-sku"><?php echo 'SKU: ' . $pSku ?></div>
+                                            </a>
+                                        </td>
+
+                                    <?php elseif ($productCounter <= 2 && $page == $totalPages && $page != 1) : ?>
+
+                                        <!-- product cont -->
+                                        <td class="ls-prod-cont" style="text-align:center; padding: 3mm; line-height: 6.5mm; padding-bottom: 141mm;">
+                                            <a href="<?php echo $pLink; ?>" style="text-decoration: none; color: black;">
+                                                <img style="width:88mm; height: 88mm; border: 0.5mm solid #ddd; box-sizing: border-box; margin-bottom: 5mm;" src="<?php echo $pImgUrl ?>" />
+                                                <div class="ls-prod-title" style="font-weight: bold;"><?php echo $pTitle ?></div>
                                                 <div class="ls-prod-price"><?php echo $currency . ' ' . number_format($pPrice, 2, '.', '') ?></div>
                                                 <div class="ls-prod-sku"><?php echo 'SKU: ' . $pSku ?></div>
                                             </a>
@@ -172,12 +224,12 @@ function ls_generate_line_sheet_preview_html($prod_ids, $per_page, $currency, $c
                                         <td class="ls-prod-cont" style="text-align:center; padding: 3mm; line-height: 6.5mm;">
                                             <a href="<?php echo $pLink; ?>" style="text-decoration: none; color: black;">
                                                 <img style="width:88mm; height: 88mm; border: 0.5mm solid #ddd; box-sizing: border-box; margin-bottom: 5mm;" src="<?php echo $pImgUrl ?>" />
-                                                <div class="ls-prod-title" style="font-weight: bold; font-size: 3.5mm;"><?php echo $pTitle ?></div>
+                                                <div class="ls-prod-title" style="font-weight: bold;"><?php echo $pTitle ?></div>
                                                 <div class="ls-prod-price"><?php echo $currency . ' ' . number_format($pPrice, 2, '.', '') ?></div>
                                                 <div class="ls-prod-sku"><?php echo 'SKU: ' . $pSku ?></div>
                                             </a>
                                         </td>
-                                        
+
                                     <?php else : ?>
                                         <!-- product cont -->
                                         <td class="ls-prod-cont" style="text-align:center; padding: 3mm; line-height: 6.5mm;">
@@ -188,8 +240,10 @@ function ls_generate_line_sheet_preview_html($prod_ids, $per_page, $currency, $c
                                                 <div class="ls-prod-sku"><?php echo 'SKU: ' . $pSku ?></div>
                                             </a>
                                         </td>
-                                    <?php endif; ?>
-                                    <?php if ($productCounter % 2 === 0 || $productCounter === count($productIdsPage)) : ?>
+                                    <?php endif;
+
+                                    // close table row
+                                    if ($productCounter % 2 === 0 || $productCounter === count($productIdsPage)) : ?>
                                     </tr>
                             <?php
                                     endif;
