@@ -22,8 +22,8 @@ function ls_generator_admin() {
 
     global $wpdb;
 
+    // query and return products
     $query = "SELECT ID, post_title FROM {$wpdb->prefix}posts WHERE post_type = 'product' AND post_status = 'publish'";
-
     $prod_data = $wpdb->get_results($query);
 
     global $title; ?>
@@ -222,6 +222,15 @@ function ls_generator_admin() {
                     </select>
                 </p>
 
+                <!-- per page -->
+                <p style="margin-bottom: 5px;"><label for="per_page"><i><b><?php _e('Products per page:*', LSGEN_TDOM); ?></b></i></label></p>
+                <p style="margin-top: 0;">
+                    <select name="per_page" id="per_page" class="regular-text">
+                        <option value="4"><?php _e('4 Products', LSGEN_TDOM); ?></option>
+                        <option value="6"><?php _e('6 Products', LSGEN_TDOM); ?></option>
+                    </select>
+                </p>
+
                 <!-- currency -->
                 <?php
                 if (function_exists('alg_get_enabled_currencies')) :
@@ -379,7 +388,7 @@ function ls_generator_admin() {
             var btn = $(event.target),
                 prod_ids = $('#prod_ids').val(),
                 layout = 'a4',
-                per_page = 4,
+                per_page = $('#per_page').val(),
                 email = $('#email').val(),
                 intro = $('#intro').val(),
                 header_text = $('#header_text').val(),
