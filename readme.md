@@ -12,7 +12,7 @@ The admin page for this plugin can be found under Line Sheet Generator in the Wo
 
 There are several form fields to pay attention to when you are creating line sheets:
 
- 1. __Select product IDs:__ As the name suggests, this field allows you to search for and select multiple products to add to your line sheet. Product names and corresponding product IDs are shown for your selection.
+ 1. <u>__Select product IDs:__</u> As the name suggests, this field allows you to search for and select multiple products to add to your line sheet. Product names and corresponding product IDs are shown for your selection.
  2. __Select line sheet layout type:__ There are 3 layout types to choose from here, namely 3 Product Detailed Wholesale Layout (default - landscape orientation), Standard 4 Product Layout (portrait orientation) and Standard 6 Product Layout
  3. __Link products in line sheet to individual product pages?__ Whether or not you want the products you add to your line sheet to be linked to their individual product pages on the website in question
     1. __Add tracking variables below to track link clicks from line sheet (optional)__ If the above option is set to 'Yes', allows you to add tracking variables to product page links so that you can track conversions from a specific PDF line sheet. Note that you will have to handle the parsing of tracking data separately because the plugin only provides to option to add these variables to your product links and does not handle any parsing of variables which you may require.
