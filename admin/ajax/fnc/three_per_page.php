@@ -180,7 +180,9 @@ $prodCounterAll = 0;
                                             // custom line sheet attribs
                                             if ($lsAttribs && is_array($lsAttribs) && !empty($lsAttribs)) :
                                                 foreach ($lsAttribs as $attribName => $attribVal) :
-                                                    $all_attribs[$attribName . ':'] = $attribVal;
+                                                    if(strlen($attribName) > 2):
+                                                        $all_attribs[$attribName . ':'] = $attribVal;
+                                                    endif;
                                                 endforeach;
                                             endif;
 
