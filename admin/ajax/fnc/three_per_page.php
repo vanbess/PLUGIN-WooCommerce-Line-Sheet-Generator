@@ -50,7 +50,7 @@ function ls_generate_line_sheet_preview_html_three_per_page($prod_ids, $page_lay
                 
                     <!-- logo -->
                     <td colspan="1" style="border-bottom: 1mm solid black; padding-bottom: 3mm; width: 85mm; vertical-align: middle;">
-                        <img style="width: 50mm;" src="<?php echo LSGEN_URI.'admin/logo/logo.jpg'; ?>" alt="<?php echo get_bloginfo('name'); ?>">
+                        <img style="height: 8mm;" src="<?php echo LSGEN_URI.'admin/logo/logo.jpg'; ?>" alt="<?php echo get_bloginfo('name'); ?>">
                     </td>
 
                     <!-- title -->
