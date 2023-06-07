@@ -2,3 +2,4 @@
 admin/generated
 admin/pdfs
 *.zip
+.vscode/settings.json
