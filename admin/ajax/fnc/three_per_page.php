@@ -47,10 +47,10 @@ function ls_generate_line_sheet_preview_html_three_per_page($prod_ids, $page_lay
 
                 <!-- header -->
                 <tr class="ls-header">
-                
+
                     <!-- logo -->
                     <td colspan="1" style="border-bottom: 1mm solid black; padding-bottom: 3mm; width: 85mm; vertical-align: middle;">
-                        <img style="height: 8mm;" src="<?php echo LSGEN_URI.'admin/logo/logo.jpg'; ?>" alt="<?php echo get_bloginfo('name'); ?>">
+                        <img style="height: 8mm;" src="<?php echo LSGEN_URI . 'admin/logo/logo.jpg'; ?>" alt="<?php echo get_bloginfo('name'); ?>">
                     </td>
 
                     <!-- title -->
@@ -143,7 +143,7 @@ function ls_generate_line_sheet_preview_html_three_per_page($prod_ids, $page_lay
                                 <tr class="ls-prod">
 
                                     <!-- product image -->
-                                    <td class="ls-prod-img" style="vertical-align: middle; padding-top: 4mm; <?php echo $productCounter % 3 !== 0 ? 'border-bottom: 1mm solid #f3f3f3;' : null; ?> <?php echo $productCounter % 3 === 0 ? 'padding-bottom: 5mm;' : 'padding-bottom: 4mm;' ?>">
+                                    <td class="ls-prod-img" style="vertical-align: middle; padding-top: 4mm; <?php echo $productCounter % 3 !== 0 ? 'border-bottom: 1mm solid #f3f3f3;' : null; ?> <?php echo $productCounter % 3 === 0 ? 'padding-bottom: 5mm;' : 'padding-bottom: 4mm;' ?><?php echo $productCounter % 3 === 2 && $page == $totalPages ? 'padding-bottom: 64mm;border-bottom: none;' : null; ?> <?php echo $productCounter % 3 === 1 && $page == $totalPages ? 'padding-bottom: 122mm;border-bottom: none;' : null; ?>">
 
                                         <?php
                                         // linked to product page or not?
@@ -177,7 +177,7 @@ function ls_generate_line_sheet_preview_html_three_per_page($prod_ids, $page_lay
                                             // custom line sheet attribs
                                             if ($lsAttribs && is_array($lsAttribs) && !empty($lsAttribs)) :
                                                 foreach ($lsAttribs as $attribName => $attribVal) :
-                                                    $all_attribs[$attribName.':'] = $attribVal;
+                                                    $all_attribs[$attribName . ':'] = $attribVal;
                                                 endforeach;
                                             endif;
 
