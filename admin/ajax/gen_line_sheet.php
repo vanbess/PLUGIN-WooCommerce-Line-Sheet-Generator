@@ -19,6 +19,9 @@ function ls_generate_line_sheet() {
     $fileName = sanitize_text_field($_POST['fileName']);
     $fileName = str_replace(' ', '_', $fileName);
 
+    // get layout
+    $layout = $_POST['layout'];
+
     try {
 
         // get html content
@@ -33,19 +36,38 @@ function ls_generate_line_sheet() {
         $mpdf = new \Mpdf\Mpdf(['auto_link' => true]);
 
         // fix our margins
-        $mpdf->__construct([
-            'margin_bottom' => 0,
-            'margin_top'    => 5,
-            'margin_left'   => 10,
-            'margin_right'  => 0,
-        ]);
+
+        // if wholesale layout
+        if ($layout == '3') :
+            $mpdf->__construct([
+                'margin_bottom'     => 0,
+                'margin_top'        => 6,
+                'margin_left'       => 10,
+                'margin_right'      => 10,
+                'margin_header'     => 0,
+                'margin_footer'     => 0,
+                'orientation'       => 'L',
+                'default_font_size' => '10',
+                'default_font'      => 'Helvetica',
+            ]);
+
+
+        // if default layout
+        else :
+            $mpdf->__construct([
+                'margin_bottom' => 0,
+                'margin_top'    => 5,
+                'margin_left'   => 10,
+                'margin_right'  => 0,
+            ]);
+        endif;
 
         // write html
         $mpdf->WriteHTML($html);
 
         try {
             //code...
-            $mpdf->Output(LSGEN_PATH . 'admin/pdfs/' . $fileName . '_' . time() . '.pdf', 'F');
+            $mpdf->Output(LSGEN_PATH . 'admin/pdfs/' . time() . '_' . $fileName . '.pdf', 'F');
 
             wp_send_json_success(__('PDF successfully saved.'));
         } catch (\Throwable $th) {

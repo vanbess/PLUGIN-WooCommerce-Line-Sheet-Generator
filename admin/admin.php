@@ -165,46 +165,22 @@ function ls_generator_admin() {
 
         <h2>
             <?php echo $title; ?>
+            <button id="clear_generation_cache" class="button button-secondary" onclick="clearLSCache(event)" title="<?php _e('Click to clear previously generated line sheet HTML file cache', LSGEN_TDOM); ?>">
+                <?php _e('Clear Preview Cache', LSGEN_TDOM); ?>
+            </button>
+            <button id="view_generated" class="button button-secondary" onclick="showPreviouslyGenerated(event)" title="<?php _e('Click to view a list of previously generated line sheet PDFs.', LSGEN_TDOM); ?>">
+                <?php _e('View Previously Generated Line Sheets', LSGEN_TDOM); ?>
+            </button>
         </h2>
 
-        <!-- instructions -->
-        <div class="notice notice-warning is-dismissible" style="left: -15px;">
+        <!-- show previously generated modal -->
+        <script>
+            $ = jQuery;
 
-            <p><b><u><?php _e('INSTRUCTIONS/NOTES', LSGEN_TDOM); ?></u></b> </p>
-
-            <ul id="ls-instructions">
-                <li>
-                    <b>
-                        <?php _e('Please ensure that your product images have a width and height ratio of 1:1, for example 512px X 512px, 1024px X 1024px, or similar, otherwise page layout for generated line sheet PDFs will break.', LSGEN_TDOM); ?>
-                    </b>
-                </li>
-                <li>
-                    <b>
-                        <?php _e('You will need to generate a preview of your linesheet using the "Generate Preview" button before you can save it to PDF using "Generate Line Sheet". The reason for this is that the generated HTML gets used for the layout of the line sheet PDF. If you forget to generate fresh line sheet HTML, the previously generated HTML template will be used for saving to PDF instead if present, or the generation will fail.', LSGEN_TDOM); ?>
-                    </b>
-                </li>
-                <li>
-                    <b>
-                        <?php _e('It is important to keep in mind that, while the generated PDF line sheet will match the preview generated below as closely as possible, there will still be minor discrepancies in spacing and other aspects of the PDF document. This is because HTML layout and its associated CSS does not translate 100% to PDF document format, although it comes close.', LSGEN_TDOM); ?>
-                    </b>
-                </li>
-                <li>
-                    <b>
-                        <?php _e('Note that this generator only supports maximum 4 products per page, which provides the best and most accurate layout.', LSGEN_TDOM); ?>
-                    </b>
-                </li>
-                <li>
-                    <b>
-                        <?php _e('Previously generated PDFs will appear in the "Previously generated line sheet PDFs" box below under the line sheet save name defined below, so if you need to redownload previously generated PDFs, you can do so by clicking on the link of the associated PDF.', LSGEN_TDOM); ?>
-                    </b>
-                </li>
-                <li>
-                    <b>
-                        <?php _e('You can delete all previously generated PDFs by clicking on the "Delete All" button.', LSGEN_TDOM); ?>
-                    </b>
-                </li>
-            </ul>
-        </div>
+            function showPreviouslyGenerated(event) {
+                $('#ls-previously-generated-overlay, #ls-previously-generated').show();
+            }
+        </script>
 
         <!-- ls settings cont -->
         <div id="ls-settings-cont">
@@ -212,94 +188,189 @@ function ls_generator_admin() {
             <!-- inputs cont -->
             <div id="ls-generator-form-cont">
 
-                <!-- product ids -->
-                <p style="margin-bottom: 5px;"><label for="prod_ids"><i><b><?php _e('Select product IDs:*', LSGEN_TDOM); ?></b></i></label></p>
-                <p style="margin-top: 0;">
-                    <select name="prod_ids" id="prod_ids" multiple class="regular-text">
-                        <?php foreach ($prod_data as $obj) : ?>
-                            <option value="<?php echo $obj->ID; ?>"><?php echo $obj->post_title; ?> (ID: <?php echo $obj->ID; ?>)</option>
-                        <?php endforeach; ?>
-                    </select>
-                </p>
+                <div style="width: 400px; padding: 0 30px;">
 
-                <!-- per page -->
-                <p style="margin-bottom: 5px;"><label for="per_page"><i><b><?php _e('Products per page:*', LSGEN_TDOM); ?></b></i></label></p>
-                <p style="margin-top: 0;">
-                    <select name="per_page" id="per_page" class="regular-text">
-                        <option value="4"><?php _e('4 Products', LSGEN_TDOM); ?></option>
-                        <option value="6"><?php _e('6 Products', LSGEN_TDOM); ?></option>
-                    </select>
-                </p>
+                    <!-- product ids -->
+                    <p style="margin-bottom: 5px;">
+                        <label for="prod_ids">
+                            <i><b><?php _e('Select product IDs:*', LSGEN_TDOM); ?></b></i>
+                        </label>
+                    </p>
+                    <p style="margin-top: 0;">
+                        <select name="prod_ids" id="prod_ids" multiple class="regular-text">
+                            <?php foreach ($prod_data as $obj) : ?>
+                                <option value="<?php echo $obj->ID; ?>"><?php echo $obj->post_title; ?> (ID: <?php echo $obj->ID; ?>)</option>
+                            <?php endforeach; ?>
+                        </select>
+                    </p>
 
-                <!-- currency -->
-                <?php
-                if (function_exists('alg_get_enabled_currencies')) :
+                    <!-- per page -->
+                    <p style="margin-bottom: 5px;">
+                        <label for="page_layout">
+                            <i><b><?php _e('Select line sheet layout type:*', LSGEN_TDOM); ?></b></i>
+                        </label>
+                    </p>
+                    <p style="margin-top: 0;">
+                        <select name="page_layout" id="page_layout" class="regular-text">
+                            <option value="3" selected><?php _e('3 Product Detailed Wholesale Layout', LSGEN_TDOM); ?></option>
+                            <option value="4"><?php _e('Standard 4 Product Layout', LSGEN_TDOM); ?></option>
+                            <option value="6"><?php _e('Standard 6 Product Layout', LSGEN_TDOM); ?></option>
+                        </select>
+                    </p>
 
-                    // retrieve ALG enabled currency list
-                    $enabled_currencies = alg_get_enabled_currencies(true);
+                    <!-- allow links -->
+                    <p style="margin-bottom: 5px;">
+                        <label for="allow_links">
+                            <i><b><?php _e('Link products in line sheet to individual product pages?*', LSGEN_TDOM); ?></b></i>
+                        </label>
+                    </p>
+                    <p style="margin-top: 0;">
+                        <select name="allow_links" id="allow_links" class="regular-text" onchange="showTrackingInput(event)">
+                            <option value="yes"><?php _e('Yes', LSGEN_TDOM); ?></option>
+                            <option value="no" selected><?php _e('No', LSGEN_TDOM); ?></option>
+                        </select>
+                    </p>
 
-                    if (is_array($enabled_currencies) && !empty($enabled_currencies)) : ?>
-                        <p style="margin-bottom: 5px;"><label for="currency"><i><b><?php _e('Select Currency:*', LSGEN_TDOM); ?></b></i></label></p>
-                        <p style="margin-top: 0;">
-                            <select name="currency" id="currency" class="regular-text">
-                                <?php foreach ($enabled_currencies as $currency) : ?>
-                                    <option value="<?php echo $currency; ?>"><?php echo $currency; ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </p>
-                <?php endif;
+                    <script>
+                        $ = jQuery;
 
-                endif;
-                ?>
+                        /* Show/hide tracking variable input */
+                        function showTrackingInput(event) {
 
-                <!-- header text -->
-                <p style="margin-bottom: 5px;"><label for="header_text"><i><b><?php _e('Specify page header text:*', LSGEN_TDOM); ?></b></i></label></p>
-                <p style="margin-top: 0;"><input type="text" name="header_text" id="header_text" class="regular-text" placeholder="<?php _e('example: Spring Collection ' . date('Y'), LSGEN_TDOM); ?>"></p>
+                            var target = $(event.target),
+                                selected = target.val();
 
-                <!-- contact email -->
-                <p style="margin-bottom: 5px;"><label for="email"><i><b><?php _e('Specify footer contact email:*', LSGEN_TDOM); ?></b></i></label></p>
-                <p style="margin-top: 0;"><input type="email" name="email" id="email" class="regular-text"></p>
+                            if (selected === 'yes') {
+                                $('.tracking_input').show();
+                            } else {
+                                $('.tracking_input').hide();
+                            }
 
-                <!-- line sheet intro -->
-                <p style="margin-bottom: 5px;"><label for="intro"><i><b><?php _e('If you want to add a short intro to the line sheet document, add it here (optional, 250 characters max):', LSGEN_TDOM); ?></b></i></label></p>
-                <p style="margin-top: 0;">
-                    <textarea name="intro" id="intro" cols="30" rows="10" maxlength="250" class="regular-text"></textarea>
-                    <span id="characterCount" style="text-align: right; display: block;"><b>0/250</b></span>
-                </p>
+                        }
+                    </script>
 
+                    <!--  tracking variables input -->
+                    <p class="tracking_input" style="margin-bottom: 5px; display: none;">
+                        <label for="tracking_vars">
+                            <i><b><?php _e('Add tracking variables below to track link clicks from line sheet (optional):', LSGEN_TDOM); ?></b></i>
+                        </label>
+                    </p>
+                    <p class="tracking_input" style="margin-top: 0; display: none;">
+                        <input type="text" name="tracking_vars" id="tracking_vars" class="regular-text" placeholder="<?php _e('example: ?var_1=abc&var_2=xyz ', LSGEN_TDOM); ?>">
+                    </p>
 
-                <!-- generate preview -->
-                <p>
-                    <button class="button button-secondary regular-text" style="width: 100%" onclick="generatePreview(event)">
-                        <?php _e('Generate Preview', LSGEN_TDOM); ?>
-                    </button>
-                </p>
+                    <!-- currency -->
+                    <?php
+                    if (function_exists('alg_get_enabled_currencies')) :
 
-                <hr>
-                <hr>
+                        // retrieve ALG enabled currency list
+                        $enabled_currencies = alg_get_enabled_currencies(true);
 
-                <!-- line sheet name -->
-                <p style="margin-bottom: 5px;"><label for="ls_name"><i><b><?php _e('Line sheet save name:*', LSGEN_TDOM); ?></b></i></label></p>
-                <p style="margin-top: 0;"><input type="text" name="ls_name" id="ls_name" class="regular-text" placeholder="<?php _e('example: shoes line sheet', LSGEN_TDOM); ?>"></p>
+                        if (is_array($enabled_currencies) && !empty($enabled_currencies)) : ?>
+                            <p style="margin-bottom: 5px;">
+                                <label for="currency">
+                                    <i><b><?php _e('Select Currency:*', LSGEN_TDOM); ?></b></i>
+                                </label>
+                            </p>
+                            <p style="margin-top: 0;">
+                                <select name="currency" id="currency" class="regular-text">
+                                    <?php foreach ($enabled_currencies as $currency) : ?>
+                                        <option value="<?php echo $currency; ?>"><?php echo $currency; ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </p>
+                    <?php endif;
 
-                <!-- generate linesheet -->
-                <p>
-                    <button id="generate_ls" class="button button-primary regular-text" style="width: 100%" onclick="generateLinesheet(event)">
-                        <?php _e('Generate Line Sheet', LSGEN_TDOM); ?>
-                    </button>
-                </p>
+                    endif;
+                    ?>
+
+                    <!-- header text -->
+                    <p style="margin-bottom: 5px;">
+                        <label for="header_text">
+                            <i><b><?php _e('Specify page header text:*', LSGEN_TDOM); ?></b></i>
+                        </label>
+                    </p>
+                    <p style="margin-top: 0;">
+                        <input type="text" name="header_text" id="header_text" maxlength="50" class="regular-text" placeholder="<?php _e('example: Spring Collection ' . date('Y'), LSGEN_TDOM); ?>">
+                    </p>
+
+                    <!-- contact email -->
+                    <p style="margin-bottom: 5px;">
+                        <label for="email">
+                            <i><b><?php _e('Specify footer contact email:*', LSGEN_TDOM); ?></b></i>
+                        </label>
+                    </p>
+                    <p style="margin-top: 0;">
+                        <input type="email" name="email" id="email" class="regular-text">
+                    </p>
+                </div>
+
+                <div style="width: 400px; padding: 0 30px;">
+
+                    <!-- line sheet intro -->
+                    <p style="margin-bottom: 5px;">
+                        <label for="intro">
+                            <i><b><?php _e('Add line sheet intro text here (optional, 250 characters max):', LSGEN_TDOM); ?></b></i>
+                        </label>
+                    </p>
+                    <p style="margin-top: 0;">
+                        <textarea name="intro" id="intro" cols="30" rows="10" maxlength="250" class="regular-text" placeholder="<?php _e('NOTE: displays on 4 and 6 product layouts only', 'default'); ?>"></textarea>
+                        <span id="characterCount" style="text-align: right; display: block;"><b>0/250</b></span>
+                    </p>
+
+                    <!-- generate preview -->
+                    <p>
+                        <button class="button button-secondary regular-text" style="width: 100%" title="<?php _e('Click to generate your line sheet preview. The preview will be displayed in the line sheet preview box below.', LSGEN_TDOM); ?>" onclick="generatePreview(event)">
+                            <?php _e('Generate Preview', LSGEN_TDOM); ?>
+                        </button>
+                    </p>
+
+                    <hr>
+
+                    <!-- line sheet name -->
+                    <p style="margin-bottom: 5px;">
+                        <label for="ls_name">
+                            <i><b><?php _e('Line sheet save name:*', LSGEN_TDOM); ?></b></i>
+                        </label>
+                    </p>
+                    <p style="margin-top: 0;">
+                        <input type="text" name="ls_name" id="ls_name" class="regular-text" placeholder="<?php _e('example: shoes line sheet', LSGEN_TDOM); ?>">
+                    </p>
+
+                    <!-- generate linesheet -->
+                    <p>
+                        <button id="generate_ls" class="button button-primary regular-text" title="<?php _e('Click to generate your line sheet. NOTE: You need to first generate your line sheet preview before generating the actual line sheet PDF.', LSGEN_TDOM); ?>" style="width: 100%" onclick="generateLinesheet(event)">
+                            <?php _e('Generate Line Sheet', LSGEN_TDOM); ?>
+                        </button>
+                    </p>
+
+                </div>
 
             </div>
 
-            <!-- previously generate line sheets -->
-            <div id="ls-previously-generated">
+            <!-- previously generated modal overlay -->
+            <div id="ls-previously-generated-overlay" style="display:none;"></div>
+
+            <!-- previously generate line sheets modal -->
+            <div id="ls-previously-generated" style="display:none;">
+
+                <!-- close -->
+                <a href="#" class="ls-close-pu" onclick="closeModal(event)">x</a>
+
+                <script>
+                    $ = jQuery;
+
+                    function closeModal(event) {
+                        $('#ls-previously-generated-overlay, #ls-previously-generated').hide();
+                    }
+                </script>
 
                 <label for="ls-previously-generated-cont">
 
                     <i><b><?php _e('Previously generated line sheet PDFs (click on a link to download):', LSGEN_TDOM); ?></b></i>
 
                     <!-- delete all previously generated -->
-                    <button class="button button-secondary button-small del-all-pdfs" onclick="delAllPDFs(event)"><?php _e('Delete All', LSGEN_TDOM); ?></button>
+                    <button class="button button-small del-all-pdfs" title="<?php _e('Click to delete all previously generated PDFs.', LSGEN_TDOM); ?>" onclick="delAllPDFs(event)"><?php _e('Delete All', LSGEN_TDOM); ?></button>
 
                 </label>
 
@@ -365,12 +436,16 @@ function ls_generator_admin() {
     <script>
         $ = jQuery;
 
+        /* ******* */
         /* Select2 */
+        /* ******* */
         $('#prod_ids').select2({
             'placeholder': '<?php _e('Start typing to search...', LSGEN_TDOM); ?>'
         });
 
+        /* ************************ */
         /* Textarea character count */
+        /* ************************ */
         const textarea = document.getElementById('intro');
         const characterCount = document.getElementById('characterCount');
 
@@ -381,26 +456,28 @@ function ls_generator_admin() {
             characterCount.textContent = count + '/250';
         });
 
+        /* **************** */
         /* Generate preview */
+        /* **************** */
         function generatePreview(event) {
 
             // vars
             var btn = $(event.target),
                 prod_ids = $('#prod_ids').val(),
-                layout = 'a4',
-                per_page = $('#per_page').val(),
+                page_layout = $('#page_layout').val(),
                 email = $('#email').val(),
                 intro = $('#intro').val(),
                 header_text = $('#header_text').val(),
+                allow_links = $('#allow_links').val(),
+                tracking_vars = $('#tracking_vars').val(),
                 currency = $('#currency').length ? $('#currency').val() : null;
 
             btn.text('<?php _e('Working...', LSGEN_TDOM) ?>');
 
             // error check
-            if (!prod_ids || !layout || !per_page || !email || !header_text) {
+            if (!prod_ids || !page_layout || !email || !header_text) {
                 alert('<?php _e('Please supply all required parameters!', LSGEN_TDOM) ?>');
                 btn.text('<?php _e('Generate Preview', LSGEN_TDOM); ?>');
-
                 return;
             }
 
@@ -409,28 +486,31 @@ function ls_generator_admin() {
                 '_ajax_nonce': '<?php echo wp_create_nonce('ls generate preview') ?>',
                 'action': 'ls_generate_preview',
                 'prod_ids': prod_ids,
-                'layout': layout,
-                'per_page': per_page,
+                'page_layout': page_layout,
                 'email': email,
                 'intro': intro,
                 'header_text': header_text,
-                'currency': currency
+                'currency': currency,
+                'allow_links': allow_links,
+                'tracking_vars': tracking_vars
             }
 
             $.post('<?php echo admin_url('admin-ajax.php'); ?>', data, function(response) {
                 $('#ls-preview-cont').empty().html(response.html);
                 $('#generate_ls').attr('last-file-src', response.fileSrc);
-
                 btn.text('<?php _e('Generate Preview', LSGEN_TDOM); ?>');
             })
 
         }
 
+        /* ****************** */
         /* Generate linesheet */
+        /* ****************** */
         function generateLinesheet(event) {
 
             var btn = $(event.target),
-                fileName = $('#ls_name').val();
+                fileName = $('#ls_name').val(),
+                layout = $('#page_layout').val();
 
             btn.text('<?php _e('Working...', LSGEN_TDOM) ?>');
 
@@ -446,16 +526,20 @@ function ls_generator_admin() {
                 '_ajax_nonce': '<?php echo wp_create_nonce('ls generate line sheet') ?>',
                 'action': 'ls_generate_line_sheet',
                 'fileSrc': btn.attr('last-file-src'),
-                'fileName': fileName
+                'fileName': fileName,
+                'layout': layout
             }
 
             $.post('<?php echo admin_url('admin-ajax.php'); ?>', data, function(response) {
                 alert(response.data);
                 location.reload();
+                // console.log(response);
             })
         }
 
+        /* ********************************* */
         /* Function: download line sheet PDF */
+        /* ********************************* */
         function downloadLineSheetPDF(event) {
 
             event.preventDefault();
@@ -466,7 +550,9 @@ function ls_generator_admin() {
 
         }
 
+        /* ********************************************** */
         /* Function: delete all generated line sheet PDFs */
+        /* ********************************************** */
         function delAllPDFs(event) {
 
             event.preventDefault();
@@ -486,6 +572,29 @@ function ls_generator_admin() {
             })
 
         }
+
+        /******************************************************
+         * Function: clear previously generated HTML previews
+         ******************************************************/
+        function clearLSCache(event) {
+
+            event.preventDefault();
+
+            var btn = $(event.target);
+
+            btn.text('<?php _e('Working...', LSGEN_TDOM); ?>');
+
+            data = {
+                '_ajax_nonce': '<?php echo wp_create_nonce('delete ls cache') ?>',
+                'action': 'ls_delete_cache',
+            }
+
+            $.post('<?php echo admin_url('admin-ajax.php'); ?>', data, function(response) {
+                alert(response);
+                location.reload();
+            })
+
+        }
     </script>
 
     <!-- styles -->
@@ -496,6 +605,24 @@ function ls_generator_admin() {
             margin-top: 0;
             margin-left: -19px;
             box-shadow: 0px 2px 4px lightgray;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        button#clear_generation_cache {
+            margin-left: 30px;
+            border-color: #d63638;
+            color: #d63638;
+            margin-right: 30px;
+        }
+
+        .regular-text {
+            width: 100%;
+        }
+
+        .select2-container--default.select2-container--focus .select2-selection--multiple {
+            width: 400px !important;
         }
 
         div#ls-preview-cont {
@@ -533,6 +660,10 @@ function ls_generator_admin() {
             left: 12mm;
         }
 
+        .line-sheet-page-table-cont.is-3-page:nth-child(even) {
+            left: 0;
+        }
+
         .line-sheet-page-table-cont {
             padding: 5mm 10mm 5mm 10mm !important;
             border: 0.5mm solid #ddd !important;
@@ -547,28 +678,46 @@ function ls_generator_admin() {
         }
 
         div#ls-generator-form-cont {
-            width: 350px;
+            display: flex;
+            flex-basis: min-content;
+            align-items: center;
+            justify-content: left;
         }
 
         div#ls-settings-cont {
             display: flex;
         }
 
+        div#ls-previously-generated-overlay {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #0000008c;
+            z-index: 999;
+        }
+
         div#ls-previously-generated {
-            min-width: 27vw;
-            padding: 15px 30px;
-            margin-left: 10vw;
+            min-width: 360px;
+            width: 34vw;
+            padding: 15px;
+            position: absolute;
+            left: 26vw;
+            background: #f0f0f1;
+            z-index: 1000;
+            border-radius: 1mm;
+            min-height: 720px;
         }
 
         div#ls-previously-generated-cont {
             background: white;
-            width: 100%;
-            height: 79%;
             overflow-y: auto;
             border-radius: 5px;
             border: 1px solid #aaa;
             margin-top: 15px;
             padding: 15px;
+            min-height: 655px;
         }
 
         div#ls-previously-generated>label {
@@ -576,11 +725,64 @@ function ls_generator_admin() {
             display: block;
         }
 
-        button.button.button-secondary.button-small.del-all-pdfs {
+        button.button.button-small.del-all-pdfs {
             position: absolute;
-            right: -30px;
+            right: 5px;
             bottom: -4px;
+            background: #d63638;
+            border-color: #d63638;
+            color: white;
+            box-shadow: 0px 2px 2px darkgray;
+        }
+
+        div#ls-previously-generated-cont>p {
+            margin-top: 0;
+        }
+
+        a.ls-close-pu {
+            width: 25px;
+            height: 25px;
+            background: #d63638;
+            display: block;
+            text-align: center;
+            color: white;
+            text-decoration: none;
+            line-height: 1.7;
+            border-radius: 50%;
+            box-shadow: 0px 2px 4px black;
+            position: absolute;
+            right: -11px;
+            top: -12px;
+        }
+
+        .line-sheet-page-table-cont.is-3-page {
+            height: 213mm !important;
         }
     </style>
 
 <?php }
+
+/**
+ * Clear HTML template cache via AJAX
+ */
+
+add_action('wp_ajax_ls_delete_cache', 'ls_delete_cache');
+
+function ls_delete_cache() {
+
+    check_ajax_referer('delete ls cache');
+
+    $folderPath = LSGEN_PATH . 'admin/generated/';
+
+    // Get all files in the folder
+    $files = glob($folderPath . '*');
+
+    // Loop through each file and delete it
+    foreach ($files as $file) {
+        if (is_file($file)) {
+            unlink($file);
+        }
+    }
+
+    wp_send_json(__('File cache successfully cleared.', LSGEN_TDOM));
+}

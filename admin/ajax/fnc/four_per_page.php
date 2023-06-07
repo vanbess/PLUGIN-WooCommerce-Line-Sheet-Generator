@@ -12,30 +12,31 @@ defined('ABSPATH') ?: exit();
  * @param string $header_text - header text to be added to the top of each page in the line sheet
  * @param string $intro - the line sheet intro to be displayed on the first page of the line sheet document
  * @param string $email - email to which enquiries can be sent
- * @param string $layout - the layout chosen, i.e. A4 or US letter
+ * @param bool $is_linked - whether or not to link products to product pages
+ * @param string $tracking_vars - if linked to product pages, tracking vars to add
  * @return void
  */
-function ls_generate_line_sheet_preview_html_four_per_page($prod_ids, $per_page, $currency, $canvas_size, $header_text, $intro, $email, $layout) {
+function ls_generate_line_sheet_preview_html_four_per_page($prod_ids, $page_layout, $currency, $canvas_size, $header_text, $intro, $email, $is_linked, $tracking_vars) {
 
     // Determine the total number of pages needed
     $totalProducts = count($prod_ids);
-    $totalPages    = ceil($totalProducts / $per_page);
+    $totalPages    = ceil($totalProducts / $page_layout);
 
     // get number of products on the last page
-    $numProductsLastPage = $totalProducts % $per_page;
+    $numProductsLastPage = $totalProducts % $page_layout;
 
     ob_start();
 
     // Generate the HTML layout for each page
     for ($page = 1; $page <= $totalPages; $page++) :
 
-        $startIndex     = ($page - 1) * $per_page;
-        $productIdsPage = array_slice($prod_ids, $startIndex, $per_page);
+        $startIndex     = ($page - 1) * $page_layout;
+        $productIdsPage = array_slice($prod_ids, $startIndex, $page_layout);
 
 ?>
         <div class="line-sheet-page-table-cont" data-last-page-prods="<?php echo $numProductsLastPage; ?>" data-page="<?php echo $page; ?>" totalpages="<?php echo $totalPages; ?>" style="padding: 0; margin: 0; <?php echo $canvas_size ?>">
 
-            <table class="line-sheet-page page-<?php echo $page ?> layout-<?php echo $layout ?>" style="border-collapse: collapse; font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen-Sans,Ubuntu,Cantarell,'Helvetica Neue',sans-serif;">
+            <table class="line-sheet-page page-<?php echo $page ?>" style="border-collapse: collapse; font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen-Sans,Ubuntu,Cantarell,'Helvetica Neue',sans-serif;">
 
                 <!-- header -->
                 <tr class="ls-header">
@@ -144,74 +145,70 @@ function ls_generate_line_sheet_preview_html_four_per_page($prod_ids, $per_page,
 
                                 // setup prod pair container
                                 if ($productCounter % 2 === 1) : ?>
-                                    <tr class="ls-prod-pair">
+                                    <tr class="ls-prod-pair" data-tracking="<?php echo $tracking_vars; ?>">
                                     <?php endif; ?>
 
                                     <?php if ($productCounter >= 3 && $page === 1 && empty($intro)) : ?>
-                                        <!-- product cont -->
-                                        <td class="ls-prod-cont" style="text-align:center; padding: 3mm; line-height: 6.5mm; padding-bottom: 20mm;">
-                                            <a href="<?php echo $pLink; ?>" style="text-decoration: none; color: black;">
-                                                <img style="width:88mm; height: 88mm; border: 0.5mm solid #ddd; box-sizing: border-box; margin-bottom: 5mm;" src="<?php echo $pImgUrl ?>" />
-                                                <div class="ls-prod-title" style="font-weight: bold;"><?php echo $pTitle ?></div>
-                                                <div class="ls-prod-price"><?php echo $currency . ' ' . number_format($pPrice, 2, '.', '') ?></div>
-                                                <div class="ls-prod-sku"><?php echo 'SKU: ' . $pSku ?></div>
-                                            </a>
-                                        </td>
-
-                                    <?php elseif ($productCounter >= 3 && $page > 1) : ?>
 
                                         <!-- product cont -->
                                         <td class="ls-prod-cont" style="text-align:center; padding: 3mm; line-height: 6.5mm; padding-bottom: 20mm;">
-                                            <a href="<?php echo $pLink; ?>" style="text-decoration: none; color: black;">
-                                                <img style="width:88mm; height: 88mm; border: 0.5mm solid #ddd; box-sizing: border-box; margin-bottom: 5mm;" src="<?php echo $pImgUrl ?>" />
-                                                <div class="ls-prod-title" style="font-weight: bold;"><?php echo $pTitle ?></div>
-                                                <div class="ls-prod-price"><?php echo $currency . ' ' . number_format($pPrice, 2, '.', '') ?></div>
-                                                <div class="ls-prod-sku"><?php echo 'SKU: ' . $pSku ?></div>
-                                            </a>
-                                        </td>
 
-                                    <?php elseif ($productCounter <= 2 && $page == $totalPages && $page != 1) : ?>
+                                        <?php elseif ($productCounter >= 3 && $page > 1) : ?>
 
-                                        <!-- product cont -->
+                                            <!-- product cont -->
+                                        <td class="ls-prod-cont" style="text-align:center; padding: 3mm; line-height: 6.5mm; padding-bottom: 20mm;">
+
+                                        <?php elseif ($productCounter <= 2 && $page == $totalPages && $page != 1) : ?>
+
+                                            <!-- product cont -->
                                         <td class="ls-prod-cont" style="text-align:center; padding: 3mm; line-height: 6.5mm; padding-bottom: 141mm;">
-                                            <a href="<?php echo $pLink; ?>" style="text-decoration: none; color: black;">
+
+
+                                        <?php elseif ($productCounter >= 3 && $page === 1 && !empty($intro)) : ?>
+
+                                            <!-- product cont -->
+                                        <td class="ls-prod-cont" style="text-align:center; padding: 3mm; line-height: 6.5mm;">
+
+
+                                        <?php else : ?>
+                                            <!-- product cont -->
+                                        <td class="ls-prod-cont" style="text-align:center; padding: 3mm; line-height: 6.5mm;">
+                                        <?php endif; ?>
+
+                                        <?php
+                                        switch ($is_linked) {
+
+                                                // if linked
+                                            case true: ?>
+                                                <a href="<?php echo $pLink; ?><?php echo !empty($tracking_vars) ? $tracking_vars : '' ?>" style="text-decoration: none; color: black;">
+                                                    <img style="width:88mm; height: 88mm; border: 0.5mm solid #ddd; box-sizing: border-box; margin-bottom: 5mm;" src="<?php echo $pImgUrl ?>" />
+                                                    <div class="ls-prod-title" style="font-weight: bold;"><?php echo $pTitle ?></div>
+                                                    <div class="ls-prod-price"><?php echo $currency . ' ' . number_format($pPrice, 2, '.', '') ?></div>
+                                                    <div class="ls-prod-sku"><?php echo 'SKU: ' . $pSku ?></div>
+                                                </a>
+                                            <?php break;
+
+                                                // if not linked
+                                            case false: ?>
                                                 <img style="width:88mm; height: 88mm; border: 0.5mm solid #ddd; box-sizing: border-box; margin-bottom: 5mm;" src="<?php echo $pImgUrl ?>" />
                                                 <div class="ls-prod-title" style="font-weight: bold;"><?php echo $pTitle ?></div>
                                                 <div class="ls-prod-price"><?php echo $currency . ' ' . number_format($pPrice, 2, '.', '') ?></div>
                                                 <div class="ls-prod-sku"><?php echo 'SKU: ' . $pSku ?></div>
-                                            </a>
+                                        <?php break;
+
+                                            default:
+                                                # code...
+                                                break;
+                                        }
+                                        ?>
                                         </td>
-
-                                    <?php elseif ($productCounter >= 3 && $page === 1 && !empty($intro)) : ?>
-
-                                        <!-- product cont -->
-                                        <td class="ls-prod-cont" style="text-align:center; padding: 3mm; line-height: 6.5mm;">
-                                            <a href="<?php echo $pLink; ?>" style="text-decoration: none; color: black;">
-                                                <img style="width:88mm; height: 88mm; border: 0.5mm solid #ddd; box-sizing: border-box; margin-bottom: 5mm;" src="<?php echo $pImgUrl ?>" />
-                                                <div class="ls-prod-title" style="font-weight: bold;"><?php echo $pTitle ?></div>
-                                                <div class="ls-prod-price"><?php echo $currency . ' ' . number_format($pPrice, 2, '.', '') ?></div>
-                                                <div class="ls-prod-sku"><?php echo 'SKU: ' . $pSku ?></div>
-                                            </a>
-                                        </td>
-
-                                    <?php else : ?>
-                                        <!-- product cont -->
-                                        <td class="ls-prod-cont" style="text-align:center; padding: 3mm; line-height: 6.5mm;">
-                                            <a href="<?php echo $pLink; ?>" style="text-decoration: none; color: black;">
-                                                <img style="width:88mm; height: 88mm; border: 0.5mm solid #ddd; box-sizing: border-box; margin-bottom: 5mm;" src="<?php echo $pImgUrl ?>" />
-                                                <div class="ls-prod-title" style="font-weight: bold; font-size: 3.5mm;"><?php echo $pTitle ?></div>
-                                                <div class="ls-prod-price"><?php echo $currency . ' ' . number_format($pPrice, 2, '.', '') ?></div>
-                                                <div class="ls-prod-sku"><?php echo 'SKU: ' . $pSku ?></div>
-                                            </a>
-                                        </td>
-                                    <?php endif;
-
-                                    // close table row
-                                    if ($productCounter % 2 === 0 || $productCounter === count($productIdsPage)) : ?>
+                                        <?php
+                                        // close table row
+                                        if ($productCounter % 2 === 0 || $productCounter === count($productIdsPage)) : ?>
                                     </tr>
                             <?php
-                                    endif;
-                                endforeach;
+                                        endif;
+                                    endforeach;
                             ?>
                         </table>
                     </td>
