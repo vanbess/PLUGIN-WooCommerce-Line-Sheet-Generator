@@ -31,7 +31,6 @@ add_action('plugins_loaded', function () {
     require_once LSGEN_PATH . 'admin/ajax/delete_all.php';
     require_once LSGEN_PATH . 'admin/product/edit_screen_tab.php';
 
-    
     /**
      * CONVERT PNG SITE LOGOS WITH TRANSPARENT BACKGROUNDS TO JPG
      * FOR USE WITH MPDF - MPDF DOES NOT SUPPORT PNG IMAGES
