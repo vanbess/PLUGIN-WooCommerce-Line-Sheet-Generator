@@ -31,6 +31,8 @@ function ls_generate_line_sheet_preview_html_three_per_page($prod_ids, $page_lay
     // get number of products on the last page
     $numProductsLastPage = $totalProducts % $page_layout;
 
+$prodCounterAll = 0;
+
     ob_start();
 
     // Generate the HTML layout for each page
@@ -76,6 +78,7 @@ function ls_generate_line_sheet_preview_html_three_per_page($prod_ids, $page_lay
 
                             foreach ($productIdsPage as $productId) :
                                 $productCounter++;
+                                $prodCounterAll++;
 
                                 // retrieve relevant product data
                                 $prod       = wc_get_product($productId);
@@ -143,7 +146,7 @@ function ls_generate_line_sheet_preview_html_three_per_page($prod_ids, $page_lay
                                 <tr class="ls-prod">
 
                                     <!-- product image -->
-                                    <td class="ls-prod-img" style="vertical-align: middle; padding-top: 4mm; <?php echo $productCounter % 3 !== 0 ? 'border-bottom: 1mm solid #f3f3f3;' : null; ?> <?php echo $productCounter % 3 === 0 ? 'padding-bottom: 5mm;' : 'padding-bottom: 4mm;' ?><?php echo $productCounter % 3 === 2 && $page == $totalPages ? 'padding-bottom: 64mm;border-bottom: none;' : null; ?> <?php echo $productCounter % 3 === 1 && $page == $totalPages ? 'padding-bottom: 122mm;border-bottom: none;' : null; ?>">
+                                    <td class="ls-prod-img" style="vertical-align: middle; padding-top: 4mm; <?php echo $productCounter % 3 !== 0 ? 'border-bottom: 1mm solid #f3f3f3;' : null; ?> <?php echo $productCounter % 3 === 0 ? 'padding-bottom: 5mm;' : 'padding-bottom: 4mm;' ?><?php echo $productCounter % 3 === 2 && $prodCounterAll === $totalProducts && $page == $totalPages ? 'padding-bottom: 64mm;border-bottom: none;' : null; ?> <?php echo $productCounter % 3 === 1 && $prodCounterAll === $totalProducts && $page == $totalPages ? 'padding-bottom: 124mm;border-bottom: none;' : null; ?>">
 
                                         <?php
                                         // linked to product page or not?
