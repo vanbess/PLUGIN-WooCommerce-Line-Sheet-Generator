@@ -1,4 +1,4 @@
-## SBWC Product Line Sheet Generator for WooCommerce
+## PLUGIN: Product Line Sheet Generator for WooCommerce
 
 This plugin adds the ability to generate line sheet PDFs of products which are published to a WooCommerce store.
 
